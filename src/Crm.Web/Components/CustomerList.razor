@@ -1,0 +1,41 @@
+@if (Customers.Count == 0)
+{
+    <p class="muted">No customers yet. Add one above.</p>
+}
+else
+{
+    <table class="customer-table">
+        <thead>
+            <tr>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Email</th>
+                <th aria-label="Actions"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Customers)
+            {
+                <tr @key="customer.Id">
+                    <td>@customer.FirstName</td>
+                    <td>@customer.LastName</td>
+                    <td><a href="mailto:@customer.Email">@customer.Email</a></td>
+                    <td class="actions">
+                        <button type="button" class="danger" @onclick="() => OnDelete.InvokeAsync(customer)"
+                            aria-label="Remove @customer.FirstName @customer.LastName">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<Customer> Customers { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public EventCallback<Customer> OnDelete { get; set; }
+}

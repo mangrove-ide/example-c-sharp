@@ -1,0 +1,40 @@
+<form class="customer-form" @onsubmit="HandleSubmit">
+    <input name="firstName" placeholder="First name" aria-label="First name" @bind="firstName" required />
+    <input name="lastName" placeholder="Last name" aria-label="Last name" @bind="lastName" required />
+    <input name="email" type="email" placeholder="Email" aria-label="Email" @bind="email" required />
+    <button type="submit" disabled="@isSaving">@(isSaving ? "Adding…" : "Add customer")</button>
+    @if (errorMessage != null)
+    {
+        <p class="error form-error" role="alert">@errorMessage</p>
+    }
+</form>
+
+@code {
+    [Parameter, EditorRequired]
+    public EventCallback<NewCustomer> OnCreate { get; set; }
+
+    private string firstName = "";
+    private string lastName = "";
+    private string email = "";
+    private bool isSaving;
+    private string? errorMessage;
+
+    private async Task HandleSubmit()
+    {
+        isSaving = true;
+        try
+        {
+            await OnCreate.InvokeAsync(new NewCustomer(firstName, lastName, email));
+            (firstName, lastName, email) = ("", "", "");
+            errorMessage = null;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            errorMessage = exception.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

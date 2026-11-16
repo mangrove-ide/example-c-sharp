@@ -1,0 +1,71 @@
+@inject CustomersClient CustomersClient
+@inject IJSRuntime JSRuntime
+
+<main class="app">
+    <header>
+        <h1>Customers</h1>
+        <p class="subtitle">@customers.Count total</p>
+    </header>
+    <CustomerForm OnCreate="HandleCreate" />
+    @if (errorMessage != null)
+    {
+        <p class="error" role="alert">@errorMessage</p>
+    }
+    @if (isLoading)
+    {
+        <p class="muted">Loading…</p>
+    }
+    else
+    {
+        <CustomerList Customers="customers" OnDelete="HandleDelete" />
+    }
+</main>
+
+@code {
+    private List<Customer> customers = [];
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            customers = await CustomersClient.ListCustomers();
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            errorMessage = exception.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleCreate(NewCustomer customer)
+    {
+        var created = await CustomersClient.CreateCustomer(customer);
+        customers = customers.Append(created)
+            .OrderBy(existing => existing.LastName, StringComparer.CurrentCulture)
+            .ThenBy(existing => existing.FirstName, StringComparer.CurrentCulture)
+            .ToList();
+    }
+
+    private async Task HandleDelete(Customer customer)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Remove {customer.FirstName} {customer.LastName}?"))
+        {
+            return;
+        }
+        try
+        {
+            await CustomersClient.DeleteCustomer(customer.Id);
+            customers = customers.Where(existing => existing.Id != customer.Id).ToList();
+            errorMessage = null;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            errorMessage = exception.Message;
+        }
+    }
+}
