@@ -8,7 +8,7 @@ A basic CRM for adding and removing customers (first name, last name, email). It
 - `src/Crm.Shared/` — the `Customer` model shared by both.
 - `tests/` — xUnit API tests (`Crm.Api.Tests`) and bUnit UI tests (`Crm.Web.Tests`).
 
-Requires the .NET 10 SDK (`brew install dotnet` on macOS).
+Requires the .NET 10 SDK. CI (`.github/workflows/ci.yml`) builds and tests every push and pull request.
 
 ## Setup
 
